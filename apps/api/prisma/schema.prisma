@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Part {
+  id               String            @id @default(cuid())
+  partNumber       String            @unique
+  name             String
+  description      String?
+  unit             String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  parentRelations  BOMRelationship[] @relation("parent")
+  childRelations   BOMRelationship[] @relation("child")
+  inventoryItems   InventoryItem[]
+  workOrders       WorkOrder[]
+}
+
+model BOMRelationship {
+  id       String @id @default(cuid())
+  parentId String
+  childId  String
+  quantity Float
+  parent   Part   @relation("parent", fields: [parentId], references: [id])
+  child    Part   @relation("child", fields: [childId], references: [id])
+
+  @@unique([parentId, childId])
+}
+
+model InventoryItem {
+  id       String @id @default(cuid())
+  partId   String
+  location String
+  quantity Float
+  part     Part   @relation(fields: [partId], references: [id])
+}
+
+model WorkOrder {
+  id        String          @id @default(cuid())
+  title     String
+  status    WorkOrderStatus @default(PENDING)
+  partId    String
+  part      Part            @relation(fields: [partId], references: [id])
+  steps     Step[]
+  createdAt DateTime        @default(now())
+}
+
+enum WorkOrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETE
+}
+
+model Step {
+  id          String    @id @default(cuid())
+  workOrderId String
+  description String
+  completed   Boolean   @default(false)
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  googleId     String?  @unique
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+}

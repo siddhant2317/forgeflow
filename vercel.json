@@ -1,0 +1,9 @@
+{
+  "buildCommand": "pnpm --filter @lineforge/web run build",
+  "installCommand": "pnpm install",
+  "outputDirectory": "apps/web/dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
